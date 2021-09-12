@@ -12,8 +12,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -96,15 +96,14 @@ public class LoginAct extends AppCompatActivity {
         myLanguageSession.setLangRecreate(myLanguageSession.getLanguage());
 
         setContentView(R.layout.activity_login);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             if (myLanguageSession.getLanguage().equalsIgnoreCase("ar")) {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
             } else {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
             }
-
         }
-
 
         callbackManager = CallbackManager.Factory.create();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -142,8 +141,6 @@ public class LoginAct extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
-
-
     }
 
     private void checkGps() {
@@ -271,16 +268,12 @@ public class LoginAct extends AppCompatActivity {
                         JSONObject object = new JSONObject(responseData);
                         Log.e("loginCall >", " >" + responseData);
                         if (object.getString("status").equals("1")) {
-
                             mySession.setlogindata(responseData);
                             mySession.signinusers(true);
                             JSONObject jsonObject1 = object.getJSONObject("result");
                             Intent i = new Intent(LoginAct.this, MainActivity.class);
                             startActivity(i);
                             finish();
-
-
-
                         } else {
                             if (object.getString("result").equalsIgnoreCase("user already logged in")) {
                                 alreadyLogin();

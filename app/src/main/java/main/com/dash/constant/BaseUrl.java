@@ -26,5 +26,11 @@ public class BaseUrl {
         return baseurl.concat("cancel_ride");
     }public String getNearBranch() {
         return baseurl.concat("doctor_search");
+    }public String strips_payment() {
+        return baseurl.concat("strips_payment");
+    }public String save_card_paypal() {
+        return baseurl.concat("save_card_paypal");
+    }public String pay_with_paypal() {
+        return baseurl.concat("pay_with_paypal");
     }
 }

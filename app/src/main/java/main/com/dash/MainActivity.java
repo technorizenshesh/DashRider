@@ -17,12 +17,14 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.StrictMode;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -111,22 +113,29 @@ import main.com.dash.draglocation.MyTask;
 import main.com.dash.draglocation.WebOperations;
 import main.com.dash.draweractivity.BaseActivity;
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+public class MainActivity extends BaseActivity implements
+        OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener,
         ResultCallback<LocationSettingsResult> {
+
     private Integer THRESHOLD = 2;
     private int count = 0, countDrop = 0;
     private FrameLayout contentFrameLayout;
+
     private GoogleMap gMap;
     GPSTracker gpsTracker;
-    private AutoCompleteTextView pickuplocation, dropofflocation;
+
+    private AutoCompleteTextView pickuplocation,dropofflocation;
     private MySession mySession;
-    public static double longitude = 0.0, latitude = 0.0, pickup_lat_str = 0, pickup_lon_str = 0, drop_lat_str = 0, drop_lon_str = 0;
+    public static double longitude = 0.0, latitude = 0.0,
+            pickup_lat_str = 0, pickup_lon_str = 0,
+            drop_lat_str = 0, drop_lon_str = 0;
     public static String time_zone = "";
     int initial_flag = 0;
     public static boolean mylocset = true;
     String address_complete = "";
-    Marker googlemarker_pos, my_job_location_marker;
+    Marker googlemarker_pos,my_job_location_marker;
     private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
     private static final long MINIMUM_TIME_BETWEEN_UPDATES = 0; // in Milliseconds
     Location location;
@@ -158,21 +167,25 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+        // setContentView(R.layout.activity_main);
         myLanguageSession = new MyLanguageSession(this);
         language = myLanguageSession.getLanguage();
         myLanguageSession.setLangRecreate(myLanguageSession.getLanguage());
-        contentFrameLayout = (FrameLayout) findViewById(R.id.contentFrame); //Remember this is the FrameLayout area within your activity_main.xml
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        contentFrameLayout = (FrameLayout) findViewById(R.id.contentFrame); // Remember this is the FrameLayout area within your activity_main.xml
         getLayoutInflater().inflate(R.layout.activity_main, contentFrameLayout);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             if (myLanguageSession.getLanguage().equalsIgnoreCase("ar")) {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
             } else {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
             }
-
         }
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         ac_dialog = new ACProgressCustom.Builder(this)
                 .direction(ACProgressConstant.DIRECT_CLOCKWISE)
                 .themeColor(Color.WHITE)
@@ -203,12 +216,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         }
         checklocation();
         idinits();
-        if (mySession.getAppUpdate().equalsIgnoreCase("cancel")){
+        if (mySession.getAppUpdate().equalsIgnoreCase("cancel")) {
             try {
                 currentVersion = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
                 Log.e("OnCreate", "Current version " + currentVersion);
-
-
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
                 Log.e("OnCreate EXC", "Current version " + currentVersion);
@@ -347,8 +358,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         scheduleTaskExecutor = Executors.newScheduledThreadPool(5);
         scheduleTaskExecutor.scheduleAtFixedRate(new Runnable() {
             public void run() {
-                if (selected_car_id == null || selected_car_id.equalsIgnoreCase(""))
-                {
+                if (selected_car_id == null || selected_car_id.equalsIgnoreCase("")) {
                     new GetNearestDriverAll().execute();
                 } else {
                     new GetNearestDriver().execute();
@@ -356,7 +366,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
             }
         }, 0, 8, TimeUnit.SECONDS);
-
         new GetCurrentBooking().execute();
     }
 
@@ -581,7 +590,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 dropoffloc_str = dropofflocation.getText().toString();
                 if (pickuploc_str == null || pickuploc_str.equalsIgnoreCase("")) {
                     Toast.makeText(MainActivity.this, getResources().getString(R.string.plsselpicklocation), Toast.LENGTH_LONG).show();
-
                 } else if (dropoffloc_str == null || dropoffloc_str.equalsIgnoreCase("")) {
                     Toast.makeText(MainActivity.this, getResources().getString(R.string.seldroploc), Toast.LENGTH_LONG).show();
                 } else if (selected_car_id == null || selected_car_id.equalsIgnoreCase("")) {
@@ -1022,10 +1030,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             if (ac_dialog != null) {
                 ac_dialog.show();
             }
-
             try {
                 super.onPreExecute();
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1041,7 +1047,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 //  String postReceiverUrl = "https://api.ctlf.co.uk/";
                 URL url = new URL(postReceiverUrl);
                 Map<String, Object> params = new LinkedHashMap<>();
-
 
                 StringBuilder postData = new StringBuilder();
                 for (Map.Entry<String, Object> param : params.entrySet()) {
@@ -1098,7 +1103,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                     new GetDropOffLat().execute();
                 } catch (JSONException e) {
                     e.printStackTrace();
-
                 }
             }
         }
@@ -1271,7 +1275,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-
+            Log.e("geometry","==>"+result);
 
             if (result == null) {
 
@@ -1367,15 +1371,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            //progressbar.setVisibility(View.GONE);
+
+            // progressbar.setVisibility(View.GONE);
+
             if (ac_dialog != null) {
                 ac_dialog.dismiss();
             }
 
             if (result == null) {
-
             } else if (result.equalsIgnoreCase("")) {
-
             } else {
                 JSONObject location = null;
                 try {
@@ -1458,13 +1462,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
     }
 
     private class FetchUrl extends AsyncTask<String, Void, String> {
+
         @Override
         protected String doInBackground(String... url) {
             String data = "";
             try {
                 data = downloadUrl(url[0]);
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
             return data;
         }
 
@@ -1474,6 +1478,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             ParserTask parserTask = new ParserTask();
             parserTask.execute(result);
         }
+
     }
 
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
@@ -1482,7 +1487,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
             JSONObject jObject;
             List<List<HashMap<String, String>>> routes = null;
             try {
-
                 jObject = new JSONObject(jsonData[0]);
                 DataParser parser = new DataParser();
                 routes = parser.parse(jObject);
@@ -1507,7 +1511,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
-                    LatLng position = new LatLng(lat, lng);
+                    LatLng position = new LatLng(lat,lng);
                     animation_list.add(position);
                     points.add(position);
                     if (j == 0) {
@@ -1516,7 +1520,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                     if (j == (path.size() - 1)) {
                         droplatlong = position;
                     }
-
                 }
                 Log.e("SIZE POINT", " True >> " + points.size());
                 lineOptions.addAll(points);
@@ -1526,7 +1529,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
          AddLine();
         }
     }
-    private void AddLine(){
+
+    private void AddLine() {
         if (lineOptions != null) {
             gMap.addPolyline(lineOptions);
             MarkerOptions pick = new MarkerOptions().position(picklatLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.pick_marker)).flat(true).anchor(0.5f, 0.5f);
@@ -1556,7 +1560,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
                 URL url = new URL(postReceiverUrl);
                 Map<String, Object> params = new LinkedHashMap<>();
-
 
                 if (latitude == 0.0) {
                     params.put("latitude", pickup_lat_str);
@@ -1592,10 +1595,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 reader.close();
                 return response;
             } catch (UnsupportedEncodingException e1) {
-
                 e1.printStackTrace();
             } catch (IOException e1) {
-
                 e1.printStackTrace();
             }
             return null;
@@ -1603,32 +1604,31 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
 
         @Override
         protected void onPostExecute(String result) {
-            Log.e("AvailableCars","=====>"+result);
-            super.onPostExecute(result);
-            if (result == null) {
-                if (gMap == null) {
 
-                } else {
+            Log.e("AvailableCars","=====>" + result);
+
+            super.onPostExecute(result);
+
+            if (result == null) {
+                if (gMap == null) {} else {
                     gMap.clear();
                 }
             } else if (result.equalsIgnoreCase("null")) {
-                if (gMap == null) {
-
-                } else {
+                if (gMap == null) {} else {
                     gMap.clear();
                 }
-
             } else if (result.isEmpty()) {
-                if (gMap == null) {
-
-                } else {
+                if (gMap == null) {} else {
                     gMap.clear();
                 }
             } else {
                 try {
+
                     JSONObject jsonobj = new JSONObject(result);
                     String msg = jsonobj.getString("message");
+
                     if (msg.equalsIgnoreCase("success")) {
+
                         if (gMap != null) {
                             gMap.clear();
                             if (marker != null) {
@@ -1636,6 +1636,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                             }
                             AddLine();
                         }
+
                         JSONArray jsonArray = jsonobj.getJSONArray("result");
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -1644,21 +1645,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                                 JSONObject esti = jsonArray.getJSONObject(0);
                                 DriverDetailBean driverDetailBean = new DriverDetailBean();
                                 driverDetailBean.setId(jsonObject.getString("id"));
-                                if (jsonObject.getString("lat") == null || jsonObject.getString("lat").equalsIgnoreCase("")) {
+                                if (jsonObject.getString("lat") == null ||
+                                        jsonObject.getString("lat").equalsIgnoreCase("")) {
                                     driverDetailBean.setLatitude(Double.parseDouble("0.0"));
                                     driverDetailBean.setLongitude(Double.parseDouble("0.0"));
-
                                 } else {
                                     driverDetailBean.setLatitude(Double.parseDouble(jsonObject.getString("lat")));
                                     driverDetailBean.setLongitude(Double.parseDouble(jsonObject.getString("lon")));
-
                                 }
                                 driverDetailBean.setFirst_name(jsonObject.getString("first_name"));
                                 driverDetailBean.setCartypeid(jsonObject.getString("car_type_id"));
                                 driverDetailBean.setEstimatetime(jsonObject.getInt("estimate_time"));
                                 driverDetailBean.setBearing(jsonObject.getInt("bearing"));
                                 driverDetailBeanArrayList.add(driverDetailBean);
-
                             }
                         }
 
@@ -1666,7 +1665,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                             for (DriverDetailBean point : driverDetailBeanArrayList) {
                                 LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
                                 options.position(latLng);
-                                options.title("" + point.getFirst_name() + " " + point.getEstimatetime() + " min away");
+                                Log.e("sfafdfasd","drivernamename = " + point.getFirst_name());
+                                options.title(/*"" + point.getFirst_name() + " " +*/ point.getEstimatetime() + " min away");
                                 options.rotation(point.getBearing());
                                 marker = gMap.addMarker(options);
                                 marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.carfromabove));
@@ -1674,16 +1674,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                             }
                         }
                     }
-
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
             }
 
-
         }
-
 
     }
 
@@ -1739,10 +1736,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                 reader.close();
                 return response;
             } catch (UnsupportedEncodingException e1) {
-
                 e1.printStackTrace();
             } catch (IOException e1) {
-
                 e1.printStackTrace();
             }
             return null;
@@ -1818,7 +1813,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Go
                                 for (DriverDetailBean point : driverDetailBeanArrayList) {
                                     LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
                                     options.position(latLng);
-                                    options.title("" + point.getFirst_name() + " " + point.getEstimatetime() + " min away");
+                                    options.title(/*"" + point.getFirst_name() + " " +*/ point.getEstimatetime() + " min away");
                                     marker = gMap.addMarker(options);
                                     marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.carfromabove));
                                     markerList.add(marker);

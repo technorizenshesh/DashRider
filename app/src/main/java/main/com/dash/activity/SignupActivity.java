@@ -13,8 +13,8 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.CountDownTimer;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -68,6 +68,7 @@ import main.com.dash.constant.MySession;
 import main.com.dash.restapi.ApiClient;
 
 public class SignupActivity extends AppCompatActivity {
+
     private Button signupbut;
     private RelativeLayout backbut;
     private EditText city_et,state_et,first_name, last_name,  password_et, email_et;

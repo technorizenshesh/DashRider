@@ -113,7 +113,7 @@
     <string name = "notenough"> Vous n\'avez pas assez de solde dans votre portefeuille </string>
     <string name = "something"> Solde Google Wallet trop faible </string>
     <string name = "setpickup"> Mettre à jour l\'emplacement de dépôt </string>
-    <string name = "youonlyuse"> Pour la sécurité de nos chauffeurs, vous ne pouvez utiliser l\'option cash qu\'après confirmation de votre identité. Veuillez téléverser une photo d'identité gouvernementale ou une carte de crédit / débit. </string>
+    <string name = "youonlyuse"> Pour la sécurité de nos chauffeurs, vous ne pouvez utiliser l\'option cash qu\'après confirmation de votre identité. Veuillez téléverser une photo d\'identité gouvernementale ou une carte de crédit / débit. </string>
     <string name = "tips"> Astuce </string>
     <string name = "areyouwilltip"> Souhaitez-vous donner un pourboire au pilote </string>
     <string name = "entertipsamount"> Entrez le montant du pourboire </string>
@@ -123,7 +123,7 @@
     <string name = "sendrequest"> Envoyer la demande </string>
     <string name = "selectpick"> Veuillez sélectionner le lieu de retrait </string>
     <string name = "selectdrop"> Veuillez sélectionner le lieu de dépôt </string>
-    <string name = "identynoti"> Votre identité n\'a pas encore été identifiée, vous ne pouvez pas utiliser l'option cash </string>
+    <string name = "identynoti"> Votre identité n\'a pas encore été identifiée, vous ne pouvez pas utiliser l\'option cash </string>
     <string name = "bookingnoid"> ID de réservation </string>
     <string name = "drivernotavb"> Ce pilote n\'est actuellement pas disponible </string>
     <string name = "entercode"> Entrez le code. </string>
@@ -312,4 +312,5 @@
     <string name = "required"> Obligatoire </string>
     <string name = "emergency_call"> Appel d\'urgence </string>
     <string name="parish">Parish</string>
+    <string name="online">Online</string>
 </resources>

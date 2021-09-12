@@ -7,7 +7,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -183,12 +183,7 @@ public class MyaddedCards extends AppCompatActivity {
             {
                 cardbrandstr = cardbrandstr.substring(0, 4);
             }
-            String stars = "**** ****";
-            savedcardnumber.setText(""+cardbrandstr+" "+stars+" "+carnum);
-
-            // savedcardnumber.setText(""+cardBeanArrayList.get(position).getSetfullcardnumber());
-
-
+            savedcardnumber.setText(""+cardbrandstr+" "+" "+carnum);
             validdate.setText("" + cardBeanArrayList.get(position).getSetfullexpyearmonth());
             cardbrand.setText("" + cardBeanArrayList.get(position).getBrand());
             cardtype.setText("" + cardBeanArrayList.get(position).getFunding());
@@ -203,7 +198,6 @@ public class MyaddedCards extends AppCompatActivity {
             update_card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
                     Intent i = new Intent(MyaddedCards.this, UpdateCard.class);
                     i.putExtra("cardnumber_str",cardBeanArrayList.get(position).getSetfullcardnumber());
                     i.putExtra("cardholder_name",cardBeanArrayList.get(position).getCard_name());
@@ -214,7 +208,6 @@ public class MyaddedCards extends AppCompatActivity {
                     startActivity(i);
                 }
             });
-            // cardnumber.setText(""+getLastfour(cardBeanArrayList.get(position).getCard_number()));
             return rowView;
         }
 
@@ -357,13 +350,9 @@ if (ac_dialog!=null){
 
         @Override
         protected String doInBackground(String... strings) {
-//http://technorizen.com/transport/webservice/get_card?cus_id=cus_EGZqOg9nnZW25f
+           //lezdash.com/DashTaxi/webservice/get_card_paypal?user_id=101
             try {
-               /* String postReceiverUrl = BaseUrl.baseurl + "get_card?";
-                URL url = new URL(postReceiverUrl);
-                Map<String, Object> params = new LinkedHashMap<>();
-                params.put("cus_id", cust_id);*/
-                String postReceiverUrl = BaseUrl.baseurl + "get_user_card?";
+                String postReceiverUrl = BaseUrl.baseurl + "get_card_paypal?";
                 URL url = new URL(postReceiverUrl);
                 Map<String, Object> params = new LinkedHashMap<>();
                 params.put("user_id", user_id);
@@ -412,38 +401,27 @@ if (ac_dialog!=null){
             } else {
                 try {
                     JSONObject jsonObject = new JSONObject(result);
+                    Log.e("CardDetails",""+jsonObject);
                     if (jsonObject.getString("status").equalsIgnoreCase("1")) {
                         JSONObject jsonObject1 = jsonObject.getJSONObject("result");
-                        JSONObject jsonObject2 = jsonObject1.getJSONObject("sources");
-                        String customer_id = jsonObject1.getString("id");
-                        Log.e("customer_id >> ", " >> " + customer_id);
-
-                        JSONArray jsonArray = jsonObject2.getJSONArray("data");
+                        JSONArray jsonArray = jsonObject1.getJSONArray("items");
 
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jsonObject3 = jsonArray.getJSONObject(i);
                             CardBean cardBean = new CardBean();
                             cardBean.setId(jsonObject3.getString("id"));
-                            cardBean.setLast4(jsonObject3.getString("last4"));
-                            cardBean.setExp_month(jsonObject3.getString("exp_month"));
-                            cardBean.setExp_year(jsonObject3.getString("exp_year"));
-                            cardBean.setBrand(jsonObject3.getString("brand"));
-                            cardBean.setFunding(jsonObject3.getString("funding"));
-                            cardBean.setCustomer(jsonObject3.getString("customer"));
-                            cardBean.setCard_name(jsonObject3.getString("name"));
-                            String star = "************";
-                            String cardlastfour = jsonObject3.getString("last4");
-
-                            cardBean.setSetfullcardnumber(star + cardlastfour);
-                            cardBean.setSetfullexpyearmonth(jsonObject3.getString("exp_month") + "/" + jsonObject3.getString("exp_year"));
+                            cardBean.setLast4(jsonObject3.getString("number"));
+                            cardBean.setExp_month(jsonObject3.getString("expire_month"));
+                            cardBean.setExp_year(jsonObject3.getString("expire_year"));
+                            cardBean.setBrand(jsonObject3.getString("type"));
+                            cardBean.setCustomer(jsonObject3.getString("first_name"));
+                            cardBean.setCard_name(jsonObject3.getString("first_name"));
+                            cardBean.setSetfullcardnumber(jsonObject3.getString("number"));
+                            cardBean.setSetfullexpyearmonth(jsonObject3.getString("expire_month") + "/" + jsonObject3.getString("expire_year"));
 
                             cardBeanArrayList.add(cardBean);
                             addcard.setVisibility(View.GONE);
                         }
-
-                        //  new TransferAmount().execute(customer_id);
-
-
                     }
 
                     customCardAdp = new CustomCardAdp(MyaddedCards.this,cardBeanArrayList);

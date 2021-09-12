@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="60dp"
@@ -21,11 +21,9 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:background="@color/toobarcolor"
-
             android:minHeight="?attr/actionBarSize"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:theme="@style/CustomTheme" />
-
 
         <RelativeLayout
             android:id="@+id/exit_app_but"
@@ -84,7 +82,7 @@
         android:layout_marginRight="10dp"
         android:src="@drawable/ic_gps_local" />
 
-    <android.support.v7.widget.CardView
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/mainlay"
@@ -92,7 +90,6 @@
         android:layout_marginRight="10dp">
 
         <LinearLayout
-
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -141,7 +138,6 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
@@ -171,16 +167,13 @@
                             android:visibility="gone" />
 
                         <RelativeLayout
-
                             android:id="@+id/rel_pic"
                             android:layout_width="30dp"
                             android:layout_height="35dp"
                             android:layout_alignParentRight="true"
                             android:layout_centerVertical="true"
-
                             android:layout_marginRight="5dp"
                             android:visibility="gone">
-
 
                             <ImageView
                                 android:id="@+id/picmap_ic"
@@ -192,6 +185,7 @@
                         </RelativeLayout>
 
                     </RelativeLayout>
+
                 </LinearLayout>
 
                 <LinearLayout
@@ -266,7 +260,7 @@
         </LinearLayout>
 
 
-    </android.support.v7.widget.CardView>
+    </androidx.cardview.widget.CardView>
 
 
     <RelativeLayout
@@ -309,13 +303,13 @@
                         android:padding="5dp"
                         android:textSize="@dimen/small"
                         android:textColor="@color/colorPrimary"/>
-                    <android.support.v7.widget.RecyclerView
+                    <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/cartypelist"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:orientation="horizontal"
-                        app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
                 </LinearLayout>
 
@@ -483,6 +477,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
+                    android:visibility="gone"
                     android:weightSum="3">
 
                     <LinearLayout
@@ -526,7 +521,6 @@
                         android:id="@+id/creditlay"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-
                         android:layout_weight="1"
                         android:gravity="center"
                         android:orientation="horizontal">
@@ -544,7 +538,7 @@
                             android:layout_marginLeft="5dp"
                             android:gravity="center"
                             android:padding="1dp"
-                            android:text="@string/creditcard"
+                            android:text="@string/online"
                             android:textColor="@color/black"
                             android:textSize="@dimen/small" />
 
@@ -560,7 +554,6 @@
                         android:id="@+id/walletlay"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-
                         android:layout_weight="1"
                         android:gravity="center"
                         android:orientation="horizontal">

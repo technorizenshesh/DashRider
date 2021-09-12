@@ -12,9 +12,9 @@ import android.content.pm.Signature;
 import android.location.LocationManager;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
@@ -59,7 +59,6 @@ public class SplashActivity extends AppCompatActivity {
                 } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
                     String message = intent.getStringExtra("message");
                     Toast.makeText(getApplicationContext(), "Push notification: " + message, Toast.LENGTH_LONG).show();
-
                 }
             }
         };
@@ -74,8 +73,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onStop();
     }
     private void requestPermission() {
-        ActivityCompat.requestPermissions(SplashActivity.this, new String[]
-                {
+        ActivityCompat.requestPermissions(SplashActivity.this, new String[] {
                         android.Manifest.permission.ACCESS_NETWORK_STATE,
                         android.Manifest.permission.ACCESS_COARSE_LOCATION,
                         android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -174,7 +172,7 @@ public class SplashActivity extends AppCompatActivity {
             Log.e(TAG, "printHashKey()", e);
         }
     }
-    private void Handlers(){
+    private void Handlers() {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -182,7 +180,7 @@ public class SplashActivity extends AppCompatActivity {
                             latitude = gpsTracker.getLatitude();
                             longitude = gpsTracker.getLongitude();
                         }
-                        if (mySession.IsLoggedIn()){
+                        if (mySession.IsLoggedIn()) {
                             Intent i = new Intent(SplashActivity.this, MainActivity.class);
                             startActivity(i);
                             finish();

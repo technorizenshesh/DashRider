@@ -10,12 +10,11 @@
     tools:context=".activity.FeedbackUs">
 
     <RelativeLayout
-
         android:id="@+id/mainlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="60dp"
@@ -113,7 +112,6 @@
                     android:background="@color/black"></View>
 
             </RelativeLayout>
-
 
             <TextView
                 android:id="@+id/totalamount"
@@ -544,7 +542,9 @@
                 android:gravity="start"
                 android:hint="@string/entercomment"
                 android:padding="5dp" />
-
+<View
+    android:layout_width="match_parent"
+    android:layout_height="50dp"/>
 
         </LinearLayout>
 

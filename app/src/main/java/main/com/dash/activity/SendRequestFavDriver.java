@@ -18,12 +18,12 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.CountDownTimer;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -719,8 +719,6 @@ public class SendRequestFavDriver extends AppCompatActivity implements OnMapRead
             //   locationfromnetwork();
             gpsTracker.showSettingsAlert();
         }
-
-
     }
 
     private String loadAddress(double latitude, double longitude) {
@@ -739,10 +737,6 @@ public class SendRequestFavDriver extends AppCompatActivity implements OnMapRead
             return null;
         }
     }
-
-
-
-
 
     private String getUrl(LatLng origin, LatLng dest) {
         String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
@@ -921,8 +915,6 @@ public class SendRequestFavDriver extends AppCompatActivity implements OnMapRead
             String format = simpleDateFormat.format(new Date());
             String postReceiverUrl = "";
             postReceiverUrl = BaseUrl.baseurl + "favorite_driver_request?";
-
-
 
             try {
                 MultipartUtility multipart = new MultipartUtility(postReceiverUrl, charset);

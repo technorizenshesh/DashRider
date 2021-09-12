@@ -170,8 +170,14 @@ public class MySession {
     public void setVIP(boolean isChecked) {
         editor.putBoolean("VIP",isChecked);
         editor.commit();
+    }public void setCardID(String id) {
+        editor.putString("card_id",id);
+        editor.commit();
     }
     public boolean isVIP(){
         return pref.getBoolean("VIP",false);
+    }
+    public String getCardID(){
+        return pref.getString("card_id","");
     }
 }

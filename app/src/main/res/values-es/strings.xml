@@ -313,4 +313,5 @@
     <string name="required">Required</string>
     <string name="emergency_call">Emergency Call</string>
     <string name="parish">Parish</string>
+    <string name="online">Online</string>
 </resources>

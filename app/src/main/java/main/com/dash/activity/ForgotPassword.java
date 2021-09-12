@@ -3,7 +3,7 @@ package main.com.dash.activity;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -117,6 +117,7 @@ public class ForgotPassword extends AppCompatActivity {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
                 if (ac_dialog != null) {
                     ac_dialog.dismiss();
                 }
@@ -128,13 +129,10 @@ public class ForgotPassword extends AppCompatActivity {
                         Log.e("loginCall >", " >" + responseData);
                         if (object.getString("status").equals("1")) {
                             Toast.makeText(ForgotPassword.this, getResources().getString(R.string.plschkemaillink), Toast.LENGTH_LONG).show();
-finish();
-                        }
-                        else {
+                            finish();
+                        } else {
                             Toast.makeText(ForgotPassword.this, getResources().getString(R.string.emailnotexist), Toast.LENGTH_LONG).show();
-
                         }
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (JSONException e) {
@@ -150,7 +148,6 @@ finish();
                 if (ac_dialog != null) {
                     ac_dialog.dismiss();
                 }
-
                 Log.e("TAG", t.toString());
             }
         });

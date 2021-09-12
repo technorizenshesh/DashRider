@@ -6,9 +6,8 @@
         android:name="main.com.dash.googlemapsv2.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="main.com.dash.googlemapsv2.permission.MAPS_RECEIVE" />
+    <uses-permission android:name="main.com.dash.googlemapsv2.permission.MAPS_RECEIVE" /> <!-- Required OpenGL ES 2.0. for Maps V2 -->
 
-    <!-- Required OpenGL ES 2.0. for Maps V2 -->
     <uses-feature
         android:glEsVersion="0x00020000"
         android:required="true" />
@@ -22,20 +21,22 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:name="android.support.multidex.MultiDexApplication"
+        android:name="androidx.multidex.MultiDexApplication"
         android:allowBackup="true"
         android:icon="@drawable/app_icon"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@drawable/app_icon"
         android:screenOrientation="portrait"
         android:supportsRtl="true"
-        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/AppTheme">
+        <activity android:name=".activity.PaypalWebviewAct"></activity>
+
         <uses-library
             android:name="org.apache.http.legacy"
-            android:required="false"/>
-        <activity
-            android:name="main.com.dash.activity.SplashActivity">
+            android:required="false" />
+
+        <activity android:name=".activity.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -43,113 +44,110 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="main.com.dash.MainActivity"
+            android:name=".MainActivity"
             android:label=""
-            android:windowSoftInputMode="adjustNothing"
-            />
+            android:windowSoftInputMode="adjustNothing" />
         <activity
-            android:name="main.com.dash.draweractivity.BaseActivity"
-            android:label=""
-             />
-        <activity android:name="main.com.dash.activity.WalletAct"/>
+            android:name=".draweractivity.BaseActivity"
+            android:label="" />
+        <activity android:name=".activity.WalletAct" />
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="@string/googlekey" />
+            android:value="@string/googlekeyNew" />
 
         <activity
-            android:name="main.com.dash.activity.ProfileAct"
+            android:name=".activity.ProfileAct"
             android:label="" />
         <activity
-            android:name="main.com.dash.paymentclasses.MyaddedCards"
+            android:name=".paymentclasses.MyaddedCards"
             android:label=""
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.paymentclasses.UpdateCard"
+            android:name=".paymentclasses.UpdateCard"
             android:label=""
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.WelcomeAct"
+            android:name=".activity.WelcomeAct"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.EmergencyActivity"
+            android:name=".activity.EmergencyActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.InviteEarnAct"
+            android:name=".activity.InviteEarnAct"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.paymentclasses.MyCardsPayment"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name="main.com.dash.activity.UpdateLocation"
+            android:name=".paymentclasses.MyCardsPayment"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.RideDetailAct"
+            android:name=".activity.UpdateLocation"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.LoginAct"
+            android:name=".activity.RideDetailAct"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.ChatingAct"
+            android:name=".activity.LoginAct"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.ChatingAct"
             android:label=""
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.ForgotPassword"
+            android:name=".activity.ForgotPassword"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.SetLocation"
+            android:name=".activity.SetLocation"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.SignupActivity"
+            android:name=".activity.SignupActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.TripStatusAct"
+            android:name=".activity.TripStatusAct"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.ConfirmSendReqAct"
+            android:name=".activity.ConfirmSendReqAct"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.DriverAcceptStatus"
+            android:name=".activity.DriverAcceptStatus"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.DriverDetailAct"
+            android:name=".activity.DriverDetailAct"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.RideHistory"
+            android:name=".activity.RideHistory"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.FeedbackUs"
-            android:screenOrientation="portrait" />
+            android:name=".activity.FeedbackUs"
+            android:screenOrientation="portrait"></activity>
         <activity
-            android:name="main.com.dash.multipledroppoint.SelectRouteWithCollectiveRide"
+            android:name=".multipledroppoint.SelectRouteWithCollectiveRide"
             android:screenOrientation="portrait" />
 
         <service
-            android:name="main.com.dash.service.MyFirebaseMessagingService"
+            android:name=".service.MyFirebaseMessagingService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service android:name="main.com.dash.service.MyFirebaseInstanceIDService">
+        <service android:name=".service.MyFirebaseInstanceIDService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
 
         <activity
-            android:name="main.com.dash.paymentclasses.ConfirmPayment"
+            android:name=".paymentclasses.ConfirmPayment"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.FavoriteDrivers"
+            android:name=".activity.FavoriteDrivers"
             android:label=""
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.SendRequestFavDriver"
+            android:name=".activity.SendRequestFavDriver"
             android:screenOrientation="portrait" />
-        <activity android:name="main.com.dash.activity.MobileVerificationActivity" />
+        <activity android:name=".activity.MobileVerificationActivity" />
 
         <meta-data
             android:name="com.facebook.accountkit.ApplicationName"
@@ -168,24 +166,24 @@
             android:name="com.facebook.accountkit.ui.AccountKitActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.paymentclasses.SaveCardDetail"
+            android:name=".paymentclasses.SaveCardDetail"
             android:screenOrientation="portrait" />
         <activity
-            android:name="main.com.dash.activity.NotificationAct"
+            android:name=".activity.NotificationAct"
             android:label="" />
         <activity
-            android:name="main.com.dash.activity.SupportAct"
+            android:name=".activity.SupportAct"
             android:label="" />
-        <activity android:name="main.com.dash.activity.InvoiceActivity" />
+        <activity android:name=".activity.InvoiceActivity" />
         <activity
-            android:label=""
-            android:name="main.com.dash.activity.AboutUsAct"></activity>
+            android:name=".activity.AboutUsAct"
+            android:label="" />
         <activity
-            android:label=""
-            android:name="main.com.dash.activity.PrivacyPolicyAct"></activity>
+            android:name=".activity.PrivacyPolicyAct"
+            android:label="" />
         <activity
-            android:label=""
-            android:name="main.com.dash.activity.TermsConditions"></activity>
+            android:name=".activity.TermsConditions"
+            android:label="" />
     </application>
 
 </manifest>

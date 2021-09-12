@@ -2,7 +2,7 @@ package main.com.dash.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -29,6 +29,7 @@ public class InviteEarnAct extends AppCompatActivity {
         idinit();
         clickevent();
     }
+
     private void clickevent() {
         exit_app_but.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -36,6 +37,7 @@ public class InviteEarnAct extends AppCompatActivity {
                 finish();
             }
         });
+
         invitetv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

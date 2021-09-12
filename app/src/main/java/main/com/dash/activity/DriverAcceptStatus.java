@@ -15,10 +15,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
+import android.os.StrictMode;
 import android.os.SystemClock;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -86,6 +87,7 @@ import main.com.dash.utils.NotificationUtils;
 import www.develpoeramit.mapicall.ApiCallBuilder;
 
 public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyCallback {
+
     private GoogleMap gMap;
     GPSTracker gpsTracker;
     private double longitude = 0.0, latitude = 0.0;
@@ -118,7 +120,7 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
     private String EmergecyContact="";
     private boolean IsTripStart=false;
     private Dialog dialog;
-    ArrayList<LatLng> points=new ArrayList<>();
+    ArrayList<LatLng> points = new ArrayList<>();
     private LatLng newLatLng;
 
     @Override
@@ -127,6 +129,8 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
         myLanguageSession = new MyLanguageSession(this);
         language = myLanguageSession.getLanguage();
         myLanguageSession.setLangRecreate(myLanguageSession.getLanguage());
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         setContentView(R.layout.activity_driver_accept_status);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -135,8 +139,8 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
             } else {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
             }
-
         }
+
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         ac_dialog = new ACProgressCustom.Builder(this)
                 .direction(ACProgressConstant.DIRECT_CLOCKWISE)
@@ -192,7 +196,6 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
                             driver_status_sec.setText("" + getResources().getString(R.string.yourdriverarr));
                             driver_sts.setText("" + getResources().getString(R.string.driverarrived));
                             driverisArrived();
-
                         }
                         else if (keyMessage.equalsIgnoreCase("your booking request is Start")) {
                            IsTripStart=true;
@@ -293,7 +296,7 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
     }
     private void tripFinish() {
         DismissDialog();
-         dialog = new Dialog(DriverAcceptStatus.this);
+        dialog = new Dialog(DriverAcceptStatus.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
         dialog.setContentView(R.layout.custom_heading_lay);
@@ -396,7 +399,6 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
 
         } else {
             marker = new MarkerOptions().position(new LatLng(latitude, longitude)).flat(true).anchor(0.5f, 0.5f);
-
         }
         gMap.addMarker(marker);
         MarkerOptions myjob = new MarkerOptions().position(new LatLng(MainActivity.drop_lat_str, MainActivity.drop_lon_str)).flat(true).anchor(0.5f, 0.5f);
@@ -433,8 +435,8 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
         exit_app_but.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
-               // toCancelRide();
+//                finish();
+                toCancelRide();
             }
         });driver_det_lay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -675,7 +677,6 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
 
                                 } else {
                                     Picasso.with(DriverAcceptStatus.this).load(jsonObject2.getString("car_image")).into(carimage);
-
                                 }
 
                             }
@@ -697,7 +698,7 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
                                             double droppoint_lon = Double.parseDouble(jsonObject2.getString("droplon"));
                                             LatLng latLng = new LatLng(droppoint_lat, droppoint_lon);
                                             options.position(latLng);
-                                            options.title("" + jsonObject2.getString("dropofflocation"));
+                                            options.title(/*drivername.getText().toString().trim() + */jsonObject2.getString("dropofflocation"));
                                             marker = gMap.addMarker(options);
                                             marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.drop_marker));
                                         }
@@ -709,7 +710,6 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
                                     driver_marker = gMap.addMarker(markers1);
                                     driver_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.carfromabove));
 
-
                                     gMap.addMarker(markers);
                                     gMap.addMarker(marker2);
 
@@ -720,12 +720,11 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
                                                String url = getUrl(newLatLng, new LatLng(drop_lat, drop_lon));
                                                FetchUrl FetchUrl = new FetchUrl();
                                                FetchUrl.execute(url, "second");
-                                           }else {
+                                           } else {
                                                getDriverLocation();
                                            }
                                         }
                                     }, 2000, 15000);
-
 
                                     String url = getUrl(new LatLng(pic_lat, pick_lon), new LatLng(drop_lat, drop_lon));
                                     FetchUrl FetchUrl = new FetchUrl();
@@ -747,14 +746,20 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
             }
         }
     }
+
     private String getUrl(LatLng origin, LatLng dest) {
-        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
-        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
-        String sensor = "sensor=false";
-        String parameters = str_origin + "&" + str_dest + "&" + sensor + "&key=" + getResources().getString(R.string.googlekey_other);
-        String output = "json";
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
-        return url;
+        String url = "";
+        try {
+            String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+            String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+            String sensor = "sensor=false";
+            String parameters = str_origin + "&" + str_dest + "&" + sensor + "&key=" + getResources().getString(R.string.googlekey_other);
+            String output = "json";
+            url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
+            return url;
+        } catch (Exception e) {
+            return url;
+        }
     }
 
     /**
@@ -1156,4 +1161,121 @@ public class DriverAcceptStatus extends AppCompatActivity implements OnMapReadyC
         });
 
     }
+    private void toCancelRide() {
+        //   Log.e("War Msg in dialog", war_msg);
+        final Dialog canceldialog = new Dialog(DriverAcceptStatus.this);
+        canceldialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        canceldialog.setCancelable(false);
+        canceldialog.setContentView(R.layout.sure_to_cancle);
+        canceldialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+
+        final TextView yes_tv = (TextView) canceldialog.findViewById(R.id.yes_tv);
+        final TextView no_tv = (TextView) canceldialog.findViewById(R.id.no_tv);
+        final TextView message_tv = (TextView) canceldialog.findViewById(R.id.message_tv);
+        message_tv.setText(getResources().getString(R.string.cancelconfirmmsg));
+        yes_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ResponseToRequest().execute();
+                canceldialog.dismiss();
+
+            }
+        });
+        no_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                canceldialog.dismiss();
+            }
+        });
+        canceldialog.show();
+
+
+    }
+    private class ResponseToRequest extends AsyncTask<String, String, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if(ac_dialog!=null){
+                ac_dialog.show();
+            }
+            try {
+                super.onPreExecute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        protected String doInBackground(String... strings) {
+//http://mobileappdevelop.co/NAXCAN/webservice/users_Cancel_request?request_id=1&status=Cancel
+            try {
+                String postReceiverUrl = BaseUrl.baseurl + "users_Cancel_request?";
+                URL url = new URL(postReceiverUrl);
+                Map<String, Object> params = new LinkedHashMap<>();
+                params.put("request_id", request_id);
+                params.put("status", "Cancel");
+                StringBuilder postData = new StringBuilder();
+                for (Map.Entry<String, Object> param : params.entrySet()) {
+                    if (postData.length() != 0) postData.append('&');
+                    postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+                    postData.append('=');
+                    postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+                }
+                String urlParameters = postData.toString();
+                URLConnection conn = url.openConnection();
+                conn.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+                writer.write(urlParameters);
+                writer.flush();
+                String response = "";
+                String line;
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line = reader.readLine()) != null) {
+                    response += line;
+                }
+                writer.close();
+                reader.close();
+                Log.e("Json Cnacel By user", ">>>>>>>>>>>>" + response);
+                return response;
+            } catch (UnsupportedEncodingException e1) {
+
+                e1.printStackTrace();
+            } catch (IOException e1) {
+
+                e1.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            if(ac_dialog!=null){
+                ac_dialog.dismiss();
+            }
+            if (result == null) {
+            } else if (result.isEmpty()) {
+            } else {
+                //finish();
+                try {
+                    JSONObject jsonObject = new JSONObject(result);
+                    if(jsonObject.getString("message").equalsIgnoreCase("unsuccessfull")){
+
+                    }
+                    else {
+                        Intent i = new Intent(DriverAcceptStatus.this, MainActivity.class);
+                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        startActivity(i);                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
+        }
+    }
+
 }

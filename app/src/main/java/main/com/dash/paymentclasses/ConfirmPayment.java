@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -70,8 +70,6 @@ public class ConfirmPayment extends AppCompatActivity {
         myLanguageSession = new MyLanguageSession(this);
         language = myLanguageSession.getLanguage();
         myLanguageSession.setLangRecreate(myLanguageSession.getLanguage());
-
-
         setContentView(R.layout.activity_confirm_payment);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             if (myLanguageSession.getLanguage().equalsIgnoreCase("ar")) {

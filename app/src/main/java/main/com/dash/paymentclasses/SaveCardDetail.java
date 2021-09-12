@@ -3,7 +3,7 @@ package main.com.dash.paymentclasses;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -30,6 +30,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ import main.com.dash.constant.BaseUrl;
 import main.com.dash.constant.MyLanguageSession;
 import main.com.dash.constant.MySession;
 import main.com.dash.draweractivity.BaseActivity;
+import www.develpoeramit.mapicall.ApiCallBuilder;
 
 public class SaveCardDetail extends AppCompatActivity {
     EditText namecard, edt_cardnumber, expiry_date, year, security_code, postalcode;
@@ -55,7 +57,7 @@ public class SaveCardDetail extends AppCompatActivity {
     boolean cvv_bool = false;
     boolean expmonth_bool = false;
     boolean expyear_bool = false;
-    private String language = "",customer_id="";
+    private String language = "",customer_id="",first_name,last_name;
     MyLanguageSession myLanguageSession;
     private ProgressBar progress_bar;
 
@@ -88,7 +90,9 @@ public class SaveCardDetail extends AppCompatActivity {
                 if (message.equalsIgnoreCase("1")) {
                     JSONObject jsonObject1 = jsonObject.getJSONObject("result");
                     user_id = jsonObject1.getString("id");
-                    Log.e("user_id >>>>", "" + user_id);
+                    first_name = jsonObject1.getString("first_name");
+                    last_name = jsonObject1.getString("last_name");
+                    Log.e("jsonObject1", "" + jsonObject1);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -116,7 +120,7 @@ public class SaveCardDetail extends AppCompatActivity {
             finish();
             startActivity(getIntent());
         }
-        new GetUserProfile().execute();
+//        new GetUserProfile().execute();
     }
 
     private void clickevent() {
@@ -140,9 +144,6 @@ public class SaveCardDetail extends AppCompatActivity {
                 strexpiry_date = expiry_date.getText().toString().trim();
                 stryear = year.getText().toString().trim();
                 cvv_number = security_code.getText().toString().trim();
-                //Validate();
-
-
                 if (strnamecard == null || strnamecard.equals("")) {
                     namecard.setError(getResources().getString(R.string.cardnameempty));
                 }
@@ -158,62 +159,9 @@ public class SaveCardDetail extends AppCompatActivity {
                 if (cvv_number == null || cvv_number.equals("")) {
                     security_code.setError(getResources().getString(R.string.securitynotempety));
                 } else {
-
                     int month = Integer.parseInt(strexpiry_date);
                     int year_int = Integer.parseInt(stryear);
-
                     onClickSomething(cardnumber, month, year_int, cvv_number);
-
-                    if (cardnumber_bool && cvv_bool && expmonth_bool && expyear_bool) {
-                        //Toast.makeText(SaveCardDetail.this,"In working...", Toast.LENGTH_LONG).show();
-                        progress_bar.setVisibility(View.VISIBLE);
-                          Card card = new Card(cardnumber, month, year_int, cvv_number);  // pk_test_2khGozRubEhBZxFXj3TnxrkO
-                        card.setCurrency("usd");
-                        card.setName(strnamecard);
-                        Stripe stripe = new Stripe(SaveCardDetail.this, BaseUrl.stripe_publish);
-                        //Stripe stripe = new Stripe(SaveCardDetail.this, "pk_test_tuLF7lx5bPZpsfwM4OzqE0HJ");  //pk_test_DpAdEXE4slfMy2FR7vsSj0ya
-
-                        stripe.createToken(
-                                card,
-                                new TokenCallback() {
-                                    public void onSuccess(Token token) {
-                                        // Send token to your server
-                                        Log.e("Token >>", ">> " + token.getId());
-                                        token_str = token.getId();
-                                        progress_bar.setVisibility(View.GONE);
-                                        if (customer_id == null || customer_id.equalsIgnoreCase("") || customer_id.equalsIgnoreCase("null")) {
-                                            new AddCardDetail().execute();
-                                        } else {
-                                            new SavedCardAsc().execute();
-                                        }
-
-
-                                    }
-
-                                    public void onError(Exception error) {
-                                        // Show localized error message
-                                        progress_bar.setVisibility(View.GONE);
-                                        Toast.makeText(SaveCardDetail.this, "\n" + "The expiration year or the security code of your card is not valid",
-                                                Toast.LENGTH_LONG
-                                        ).show();
-                                        Log.e("WRONG CARD ERROR", " >> " + error.toString());
-                                        System.out.println("Eeeeeeeeeeeeeeerrrrr" + error.toString());
-
-                                    }
-                                });
-                    } else if (!cardnumber_bool) {
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.cardnumberwrong), Toast.LENGTH_LONG).show();
-                    } else if (!cvv_bool) {
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.cvvwrong), Toast.LENGTH_LONG).show();
-
-                    } else if (!expyear_bool) {
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.wrongexpyear), Toast.LENGTH_LONG).show();
-
-                    } else if (!expmonth_bool) {
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.wrongexpmonth), Toast.LENGTH_LONG).show();
-
-                    }
-
 
                 }
 
@@ -222,226 +170,10 @@ public class SaveCardDetail extends AppCompatActivity {
         });
     }
 
-    private class SavedCardAsc extends AsyncTask<String, String, String> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            //  progressBar.setVisibility(View.VISIBLE);
-            if (ac_dialog != null) {
-                ac_dialog.show();
-            }
-
-            try {
-                super.onPreExecute();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-            try {
-//http://technorizen.com/transport/webservice/add_card?cus_id=&source=
-                String postReceiverUrl = BaseUrl.baseurl + "add_card?";
-                URL url = new URL(postReceiverUrl);
-                Map<String, Object> params = new LinkedHashMap<>();
-                params.put("cus_id", customer_id);
-                params.put("source", token_str);
-
-                StringBuilder postData = new StringBuilder();
-                for (Map.Entry<String, Object> param : params.entrySet()) {
-                    if (postData.length() != 0) postData.append('&');
-                    postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                    postData.append('=');
-                    postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-                }
-                String urlParameters = postData.toString();
-                URLConnection conn = url.openConnection();
-                conn.setDoOutput(true);
-                OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-                writer.write(urlParameters);
-                writer.flush();
-                String response = "";
-                String line;
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = reader.readLine()) != null) {
-                    response += line;
-                }
-                writer.close();
-                reader.close();
-
-                return response;
-            } catch (UnsupportedEncodingException e1) {
-
-                e1.printStackTrace();
-            } catch (IOException e1) {
-
-                e1.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            Log.e("Saved Card Res", ">>>>>>>>>>>>" + result);
-            // progressBar.setVisibility(View.GONE);
-            if (ac_dialog != null) {
-                ac_dialog.dismiss();
-            }
-
-            if (result == null) {
-            } else if (result.isEmpty()) {
-
-            } else {
-                try {
-                    JSONObject jsonObject = new JSONObject(result);
-                    if (jsonObject.getString("status").equalsIgnoreCase("1")) {
-
-                        Log.e("Saved Card Data >> ", " >> " + result);
-                        JSONObject jsonObject1 = jsonObject.getJSONObject("result");
-                        BaseActivity.card_base_id = jsonObject1.getString("id");
-                        finish();
-
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.cardaddedsuc), Toast.LENGTH_LONG).show();
-
-
-                    } else {
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.somethingwrong), Toast.LENGTH_LONG).show();
-
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-
-
-        }
-    }
-
-
-    private class GetUserProfile extends AsyncTask<String, String, String> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // prgressbar.setVisibility(View.VISIBLE);
-            if (ac_dialog != null) {
-                ac_dialog.show();
-            }
-
-            try {
-                super.onPreExecute();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-//http://technorizen.com/WORKSPACE1/shipper/webservice/get_user?user_id=61
-            try {
-                String postReceiverUrl = BaseUrl.baseurl + "get_profile?";
-                URL url = new URL(postReceiverUrl);
-                Map<String, Object> params = new LinkedHashMap<>();
-                params.put("user_id", user_id);
-                params.put("type", "USER");
-
-
-                StringBuilder postData = new StringBuilder();
-                for (Map.Entry<String, Object> param : params.entrySet()) {
-                    if (postData.length() != 0) postData.append('&');
-                    postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                    postData.append('=');
-                    postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-                }
-                String urlParameters = postData.toString();
-                URLConnection conn = url.openConnection();
-                conn.setDoOutput(true);
-                OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-                writer.write(urlParameters);
-                writer.flush();
-                String response = "";
-                String line;
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = reader.readLine()) != null) {
-                    response += line;
-                }
-                writer.close();
-                reader.close();
-                Log.e("Json Login Response", ">>>>>>>>>>>>" + response);
-                return response;
-            } catch (UnsupportedEncodingException e1) {
-
-                e1.printStackTrace();
-            } catch (IOException e1) {
-
-                e1.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            // prgressbar.setVisibility(View.GONE);
-            if (ac_dialog != null) {
-                ac_dialog.dismiss();
-            }
-
-            if (result == null) {
-            } else if (result.isEmpty()) {
-
-            } else {
-                try {
-                    JSONObject jsonObject = new JSONObject(result);
-                    String status = jsonObject.getString("status");
-                    if (status.equalsIgnoreCase("1")) {
-                        JSONObject jsonObject1 = jsonObject.getJSONObject("result");
-
-                        customer_id = jsonObject1.getString("cust_id");
-
-
-                    } else {
-
-                    }
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-
-        }
-    }
-
     public void onClickSomething(String cardNumber, int cardExpMonth, int cardExpYear, String cardCVC) {
         Card card = new Card(cardNumber, cardExpMonth, cardExpYear, cardCVC);
-        card.validateNumber();
-        card.validateCVC();
-        card.validateExpMonth();
-        card.validateExpYear();
-        if (card.validateNumber()) {
-            cardnumber_bool = true;
-        } else {
-            cardnumber_bool = false;
-        }
-        if (card.validateCVC()) {
-            cvv_bool = true;
-        } else {
-            cvv_bool = false;
-        }
-        if (card.validateExpYear()) {
-            expyear_bool = true;
-        } else {
-            expyear_bool = false;
-        }
-        if (card.validateExpMonth()) {
-            expmonth_bool = true;
-        } else {
-            expmonth_bool = false;
+        if (card.validateCard()){
+            SaveCard(card);
         }
     }
 
@@ -461,109 +193,6 @@ public class SaveCardDetail extends AppCompatActivity {
         edt_cardnumber.addTextChangedListener(tv);
 
     }
-
-
-    private class AddCardDetail extends AsyncTask<String, String, String> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // prgressbar.setVisibility(View.VISIBLE);
-            if (ac_dialog != null) {
-                ac_dialog.show();
-            }
-            try {
-                super.onPreExecute();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-            //http://hitchride.net/webservice/save_card?user_id=1&holder_name=shyam&card_number=1236545212545633&expiry_month=04&expiry_year=%202019
-            try {
-                Log.e("token_str ", " >>" + token_str);
-                String postReceiverUrl = BaseUrl.baseurl + "save_card?";
-                URL url = new URL(postReceiverUrl);
-                Map<String, Object> params = new LinkedHashMap<>();
-                params.put("user_id", user_id);
-                params.put("source", token_str);
-                params.put("description", "");
-                params.put("email", "" + "");
-
-
-                StringBuilder postData = new StringBuilder();
-                for (Map.Entry<String, Object> param : params.entrySet()) {
-                    if (postData.length() != 0) postData.append('&');
-                    postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                    postData.append('=');
-                    postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-                }
-                String urlParameters = postData.toString();
-                URLConnection conn = url.openConnection();
-                conn.setDoOutput(true);
-                OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-                writer.write(urlParameters);
-                writer.flush();
-                String response = "";
-                String line;
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = reader.readLine()) != null) {
-                    response += line;
-                }
-                writer.close();
-                reader.close();
-                Log.e("Add Card", ">>>>>>>>>>>>" + response);
-                return response;
-            } catch (UnsupportedEncodingException e1) {
-
-                e1.printStackTrace();
-            } catch (IOException e1) {
-
-                e1.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            // prgressbar.setVisibility(View.GONE);
-            if (ac_dialog != null) {
-                ac_dialog.dismiss();
-            }
-
-            if (result == null) {
-            } else if (result.isEmpty()) {
-
-            } else {
-                try {
-                    JSONObject jsonObject = new JSONObject(result);
-                    if (jsonObject.getString("status").equalsIgnoreCase("1")){
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.yourcarddetailsaved), Toast.LENGTH_LONG).show();
-
-                        JSONObject jsonObject2 = jsonObject.getJSONObject("result");
-                        BaseActivity.card_base_id = jsonObject2.getString("default_source");
-                        finish();
-                    }
-                    else {
-                        Toast.makeText(SaveCardDetail.this, getResources().getString(R.string.somethingwrong), Toast.LENGTH_LONG).show();
-
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-
-
-        }
-    }
-
-
-
-
 
     private class RemooveCardDetail extends AsyncTask<String, String, String> {
         @Override
@@ -647,6 +276,37 @@ public class SaveCardDetail extends AppCompatActivity {
 
         }
     }
+    private void SaveCard(Card card){
+        HashMap<String,String>param=new HashMap<>();
+        param.put("user_id",user_id);
+        param.put("number",""+card.getNumber());
+        param.put("expire_month",""+card.getExpMonth());
+        param.put("expire_year",""+card.getExpYear());
+        param.put("cvv2",""+card.getCVC());
+        param.put("first_name",""+first_name);
+        param.put("last_name",""+last_name);
+        ApiCallBuilder.build(this)
+                .setUrl(BaseUrl.get().save_card_paypal())
+                .setParam(param).isShowProgressBar(true)
+                .execute(new ApiCallBuilder.onResponse() {
+                    @Override
+                    public void Success(String response) {
+                        Log.e("Response",response);
+                        try {
+                            JSONObject object=new JSONObject(response);
+                            if (object.getString("status").equals("1")){
+                                finish();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
+                    @Override
+                    public void Failed(String error) {
+
+                    }
+                });
+    }
 
 }

@@ -1,4 +1,6 @@
 package main.com.dash.activity;
+
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,10 +8,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.util.Half;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -28,6 +33,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.paypal.android.sdk.payments.PayPalAuthorization;
+import com.paypal.android.sdk.payments.PayPalConfiguration;
+import com.paypal.android.sdk.payments.PayPalFuturePaymentActivity;
+import com.paypal.android.sdk.payments.PayPalPayment;
+import com.paypal.android.sdk.payments.PayPalProfileSharingActivity;
+import com.paypal.android.sdk.payments.PayPalService;
+import com.paypal.android.sdk.payments.PaymentActivity;
+import com.paypal.android.sdk.payments.PaymentConfirmation;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,12 +51,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -56,16 +71,20 @@ import main.com.dash.constant.BaseUrl;
 import main.com.dash.constant.MyLanguageSession;
 import main.com.dash.constant.MySession;
 import main.com.dash.utils.NotificationUtils;
+import www.develpoeramit.mapicall.ApiCallBuilder;
 
 public class FeedbackUs extends AppCompatActivity {
+    
     private TextView date_tv, totalamount, pickuplocation, droplocation, drivername;
     private TextView servicetax,nightcharge,time_tv,timefare,distancefare,distance,carcharge;
     private ProgressBar progressbar;
     private ImageView driver_img,remove_tips;
     private RelativeLayout exit_app_but;
     private RatingBar ratingbar;
+    private final int PAYPAL_PAYMENT_REQUEST_CODE = 1234;
     private EditText comment_et;
     private Button submit;
+    Context mContext = FeedbackUs.this;
     private String req_datetime = "",driver_id="",car_charge_str="",amount_str_main="", amount_str = "", request_id = "", comment_str = "", user_log_data = "", user_id = "";
     private float rating = 0;
     MySession mySession;
@@ -84,6 +103,30 @@ public class FeedbackUs extends AppCompatActivity {
     private boolean tip_amt_sts=true;
     private String language = "",token_id="",customer_id="",tip_submit_sts="";
     MyLanguageSession myLanguageSession;
+    private double total=0.0,totalAmount=0.0;
+    private static final String TAG = "Payment";
+
+    //TODO: paypal
+    private static final String CONFIG_ENVIRONMENT = PayPalConfiguration.ENVIRONMENT_SANDBOX;
+
+    // note that these credentials will differ between live & sandbox environments.
+    private static final String CONFIG_CLIENT_ID = "ARc0StmRhSlsr-Kd4aKhnFsNPy6mz1UrVNk0wVv1lI_Sa1ZRZ9koviXAbzxm1vF5o7HsH0mho5Aq0p4Z";
+    private static final int REQUEST_CODE_PAYMENT = 1;
+    private static final String CONFIG_CLIENT_TOKEN = "access_token$production$7bkbnrzyhfmvny6r$e28b17c257cc84917087a8dcd5452ffa";
+
+    private static final int REQUEST_CODE_FUTURE_PAYMENT = 2;
+    private static final int REQUEST_CODE_PROFILE_SHARING = 3;
+
+    private static PayPalConfiguration config = new PayPalConfiguration()
+            .environment(CONFIG_ENVIRONMENT)
+            .clientId(CONFIG_CLIENT_ID)
+            // The following are only used in PayPalFuturePaymentActivity.
+            .merchantName("Dash Texi")
+            .merchantPrivacyPolicyUri(Uri.parse("http://lezdash.com/DashTaxi/privacy.php"))
+            .merchantUserAgreementUri(Uri.parse("http://lezdash.com/DashTaxi/terms.php"));
+    private String PaymentToken="";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,12 +157,12 @@ public class FeedbackUs extends AppCompatActivity {
                 if (message.equalsIgnoreCase("1")) {
                     JSONObject jsonObject1 = jsonObject.getJSONObject("result");
                     user_id = jsonObject1.getString("id");
-
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
+
         idinit();
         clickevent();
 
@@ -128,7 +171,6 @@ public class FeedbackUs extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
                     FirebaseMessaging.getInstance().subscribeToTopic(Config.TOPIC_GLOBAL);
-
                 } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
                     String message = intent.getStringExtra("message");
                     Log.e("Push notification: ", "" + message);
@@ -141,7 +183,6 @@ public class FeedbackUs extends AppCompatActivity {
                             if (waitDialog != null && waitDialog.isShowing()) {
                                 waitDialog.dismiss();
                                 receivedConfirmPayment();
-
                             }
                         }
                         if (keyMessage.equalsIgnoreCase("your payment is denied")) {
@@ -149,8 +190,6 @@ public class FeedbackUs extends AppCompatActivity {
                                 waitDialog.dismiss();
                             }
                         }
-
-
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -158,8 +197,12 @@ public class FeedbackUs extends AppCompatActivity {
             }
         };
 
-
         new GetCurrentBooking().execute();
+        try {
+            initPaypal();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -191,12 +234,14 @@ public class FeedbackUs extends AppCompatActivity {
     }
 
     private void clickevent() {
+
         exit_app_but.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
             }
         });
+
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,13 +249,23 @@ public class FeedbackUs extends AppCompatActivity {
                 comment_str = comment_et.getText().toString();
                 if (rating == 0) {
                     Toast.makeText(FeedbackUs.this, getResources().getString(R.string.plsgiverating), Toast.LENGTH_LONG).show();
+                    return;
                 }
-                else if (comment_str.equalsIgnoreCase("")){
-                    Toast.makeText(FeedbackUs.this, getResources().getString(R.string.plsraterider), Toast.LENGTH_LONG).show();
+//                if (comment_str.equalsIgnoreCase("")) {
+//                    Toast.makeText(FeedbackUs.this, getResources().getString(R.string.plsraterider), Toast.LENGTH_LONG).show();
+//                    return;
+//                }
+                if (payment_type_str.equalsIgnoreCase("Card")) {
+//                  onBuyPressed(v);
+                    Intent intent = new Intent(mContext,PaypalWebviewAct.class);
+                    intent.putExtra("amount",String.valueOf(totalAmount));
+                    intent.putExtra("id",user_id);
+                    startActivityForResult(intent,PAYPAL_PAYMENT_REQUEST_CODE);
+                    // OnPay();
+                } else {
+                   new GiveReviewRating().execute();
                 }
-                else {
-                    new GiveReviewRating().execute();
-                }
+
             }
         });
     }
@@ -359,16 +414,19 @@ public class FeedbackUs extends AppCompatActivity {
                                if (amount_str != null && !amount_str.equalsIgnoreCase("")) {
                                    double totalrideamt = Double.parseDouble(amount_str);
                                    double total = tipamt + totalrideamt;
+                                   totalAmount = total;
+                                   Log.e("jfahjsdghjagsdh","1 = " + total);
                                    totalamount.setText("Total :" + "$" + total);
-
                                }
-
-
 
                            }
                        }
                        else {
                            tips_amount_str = "0";
+                           try {
+                               totalAmount = Double.parseDouble(amount_str);
+                           } catch (Exception e) {}
+                           Log.e("jfahjsdghjagsdh","2 = " + amount_str);
                            totalamount.setText("Total :" + "$" + amount_str);
                            tipsshowlay.setVisibility(View.GONE);
                            tips_check.setChecked(false);
@@ -392,16 +450,17 @@ public class FeedbackUs extends AppCompatActivity {
                                 if (amount_str != null && !amount_str.equalsIgnoreCase("")) {
                                     double totalrideamt = Double.parseDouble(amount_str);
                                     double total = tipamt + totalrideamt;
+                                    totalAmount = total;
+                                    Log.e("jfahjsdghjagsdh","3 = " + total);
                                     totalamount.setText("Total :" + "$" + total);
-
                                 }
-
-
-
                             }
-                        }
-                        else {
+                        } else {
                             tips_amount_str = "0";
+                            try {
+                                totalAmount = Double.parseDouble(amount_str);
+                            } catch (Exception e){}
+                            Log.e("jfahjsdghjagsdh","4 = " + amount_str);
                             totalamount.setText("Total :" + "$" + amount_str);
                             tipsshowlay.setVisibility(View.GONE);
                             tips_check.setChecked(false);
@@ -426,7 +485,7 @@ public class FeedbackUs extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             // progressbar.setVisibility(View.VISIBLE);
-            if(ac_dialog!=null){
+            if(ac_dialog!=null) {
                 ac_dialog.show();
             }
 
@@ -440,7 +499,6 @@ public class FeedbackUs extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             try {
-//http://mobileappdevelop.co/NAXCAN/webservice/get_payment?request_id=1
                 String postReceiverUrl = BaseUrl.baseurl + "get_payment?";
                 URL url = new URL(postReceiverUrl);
                 Map<String, Object> params = new LinkedHashMap<>();
@@ -453,6 +511,7 @@ public class FeedbackUs extends AppCompatActivity {
                     postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
                 }
                 String urlParameters = postData.toString();
+                Log.e("PaymentURL","===>"+postReceiverUrl+urlParameters);
                 URLConnection conn = url.openConnection();
                 conn.setDoOutput(true);
                 OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
@@ -478,8 +537,10 @@ public class FeedbackUs extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
+
             // progressbar.setVisibility(View.GONE);
-            if(ac_dialog!=null){
+
+            if(ac_dialog!=null) {
                 ac_dialog.dismiss();
             }
 
@@ -497,42 +558,38 @@ public class FeedbackUs extends AppCompatActivity {
                             amount_str_main = jsonObject1.getString("total");
                             distancefare.setText("$" + jsonObject1.getString("per_miles_charge"));
                             timefare.setText("$" + jsonObject1.getString("per_min_charge"));
-                            // basefare.setText("" + "$ " + jsonObject1.getInt("base_fare"));
                             carcharge.setText("" + "$" + jsonObject1.getInt("car_charge"));
                             distance.setText("Distance(" + jsonObject1.getString("miles") + " km)");
                             time_tv.setText("Time(" + jsonObject1.getString("perMin") + " min)");
-
                             nightcharge.setText("$" + jsonObject1.getString("night_charge_amount"));
                             servicetax.setText("$" + jsonObject1.getString("service_tax_amount"));
-
                             car_charge_str = String.valueOf(jsonObject1.getString("car_charge"));
                             discount_type.setText(getResources().getString(R.string.discountapplied) + "$ " + jsonObject1.getString("discount"));
                             JSONObject jsonObject2 = jsonObject1.getJSONObject("booking_detail");
                             pickuplocation.setText("" + jsonObject2.getString("picuplocation"));
                             droplocation.setText("" + jsonObject2.getString("dropofflocation"));
-
-
                            String tip_amount_str = jsonObject2.getString("tip_amount");
+                            total = Double.parseDouble(jsonObject1.getString("total"));
                             if (tip_amount_str == null || tip_amount_str.equalsIgnoreCase("") || tip_amount_str.equalsIgnoreCase("0")) {
-                                totalamount.setText("Total :" + "$ " + jsonObject1.getString("total"));
+                                totalAmount = total;
+                                Log.e("jfahjsdghjagsdh","5 = " + total);
+                                totalamount.setText("Total :" + "$ " + total);
                             } else {
                                 tipsamt_tv.setText("$" + tip_amount_str);
                                 tipsshowlay.setVisibility(View.VISIBLE);
                                 tips_check_lay.setVisibility(View.GONE);
                                 double tipamt = Double.parseDouble(tip_amount_str);
-                                totalamount.setText("Total :" + "$" + jsonObject1.getString("total"));
-
+                                totalAmount = total;
+                                Log.e("jfahjsdghjagsdh","6 = " + total);
+                                totalamount.setText("Total :" + "$" + total);
                                 if (jsonObject1.getString("total") != null && !jsonObject1.getString("total").equalsIgnoreCase("")) {
-                                    double totalrideamt = Double.parseDouble(jsonObject1.getString("total"));
-                                    double total = tipamt + totalrideamt;
+                                    total = tipamt + total;
+                                    totalAmount = total;
+                                    Log.e("jfahjsdghjagsdh","7 = " + total);
                                     totalamount.setText("Total :" + "$" + total);
-
                                 }
                             }
-
-
-
-
+                            Log.e("PayTotal","==>" + total);
                         }
                     }
                 } catch (JSONException e) {
@@ -548,7 +605,7 @@ public class FeedbackUs extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             //  progressbar.setVisibility(View.VISIBLE);
-            if(ac_dialog!=null){
+            if(ac_dialog!=null) {
                 ac_dialog.show();
             }
 
@@ -562,9 +619,6 @@ public class FeedbackUs extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             try {
-//  hitchride.net/webservice/add_rating_review?
-
-
                 String postReceiverUrl = BaseUrl.baseurl + "add_rating_review?";
                 URL url = new URL(postReceiverUrl);
                 Map<String, Object> params = new LinkedHashMap<>();
@@ -572,8 +626,8 @@ public class FeedbackUs extends AppCompatActivity {
                 params.put("user_id", user_id);
                 params.put("driver_id", driver_id);
                 params.put("rating", rating);
-
                 params.put("timezone", time_zone);
+                params.put("payment_token", PaymentToken);
                 if (comment_str == null) {
                     params.put("review", "");
                 } else {
@@ -588,6 +642,7 @@ public class FeedbackUs extends AppCompatActivity {
                     postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
                 }
                 String urlParameters = postData.toString();
+                Log.e("AddReview","===>"+postReceiverUrl+urlParameters);
                 URLConnection conn = url.openConnection();
                 conn.setDoOutput(true);
                 OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
@@ -617,7 +672,7 @@ public class FeedbackUs extends AppCompatActivity {
             if(ac_dialog!=null){
                 ac_dialog.dismiss();
             }
-Log.e("DDDD "," >> "+result);
+            Log.e("DDDD "," >> "+result);
             if (result == null) {
             } else if (result.isEmpty()) {
             } else {
@@ -635,7 +690,6 @@ Log.e("DDDD "," >> "+result);
                         i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                         startActivity(i);
                     }
-
                 }
                 else {
                     Intent i = new Intent(FeedbackUs.this, MainActivity.class);
@@ -644,12 +698,6 @@ Log.e("DDDD "," >> "+result);
                     i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     startActivity(i);
                 }
-
-
-
-
-
-
 
             }
         }
@@ -672,7 +720,6 @@ Log.e("DDDD "," >> "+result);
         @Override
         protected String doInBackground(String... strings) {
             try {
-//http://hitchride.net/webservice/add_payment?request_id=44&amount=13.55&car_charge=5&rating=4&review=nice
                 String postReceiverUrl = BaseUrl.baseurl + "tip_payment?";
                 Log.e("TipSubmit >>> "," >> "+postReceiverUrl+"&request_id="+request_id+"&user_id="+driver_id+"&tip="+tips_amount_str+"&time_zone="+time_zone+"&token="+token_id+"&currency=usd&customer="+customer_id);
                 URL url = new URL(postReceiverUrl);
@@ -723,15 +770,13 @@ Log.e("DDDD "," >> "+result);
             if (result == null) {
             } else if (result.isEmpty()) {
             } else {
-               // waitDriverAccept();
-                //   finish();
+                // waitDriverAccept();
+                // finish();
                 Intent i = new Intent(FeedbackUs.this, MainActivity.class);
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(i);
-
-
             }
         }
     }
@@ -741,7 +786,7 @@ Log.e("DDDD "," >> "+result);
         protected void onPreExecute() {
             super.onPreExecute();
             //   progressbar.setVisibility(View.VISIBLE);
-            if(ac_dialog!=null){
+            if(ac_dialog!=null) {
                 ac_dialog.show();
             }
 
@@ -904,8 +949,108 @@ Log.e("DDDD "," >> "+result);
             }
         });
         recdialog.show();
-
-
     }
 
+    // TODO: =============Paypal Payment==========
+    private void initPaypal() {
+        Intent intent = new Intent(this, PayPalService.class);
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+        startService(intent);
+    }
+
+    public void onBuyPressed(View pressed) {
+        /*
+         * PAYMENT_INTENT_SALE will cause the payment to complete immediately.
+         * Change PAYMENT_INTENT_SALE to
+         *   - PAYMENT_INTENT_AUTHORIZE to only authorize payment and capture funds later.
+         *   - PAYMENT_INTENT_ORDER to create a payment for authorization and capture
+         *     later via calls from your server.
+         *
+         * Also, to include additional payment details and an item list, see getStuffToBuy() below.
+         */
+        PayPalPayment thingToBuy = getThingToBuy(PayPalPayment.PAYMENT_INTENT_SALE);
+
+        /*
+         * See getStuffToBuy(..) for examples of some available payment options.
+         */
+
+        Intent intent = new Intent(this, PaymentActivity.class);
+
+        // send the same configuration for restart resiliency
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+
+        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, thingToBuy);
+
+        startActivityForResult(intent, REQUEST_CODE_PAYMENT);
+    }
+
+    private PayPalPayment getThingToBuy(String paymentIntent) {
+        return new PayPalPayment(new BigDecimal(total), "USD", "Trp Charge",
+                paymentIntent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_PAYMENT) {
+            if (resultCode == Activity.RESULT_OK) {
+                PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
+                if (confirm != null) {
+                    try {
+                        Log.i(TAG, confirm.toJSONObject().toString(4));
+//                        Log.i(TAG, confirm.getPayment().toJSONObject().toString(4));
+                        JSONObject object=new JSONObject(confirm.toJSONObject().toString(4));
+                        Log.i(TAG, object.getJSONObject("response").getString("id"));
+                        PaymentToken=object.getJSONObject("response").getString("id");
+                        displayResultText("PaymentConfirmation info received from PayPal");
+                        new GiveReviewRating().execute();
+                    } catch (JSONException e) {
+                        Log.e(TAG, "an extremely unlikely failure occurred: ", e);
+                    }
+                }
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                Log.i(TAG, "The user canceled.");
+            } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
+                Log.i(TAG, "An invalid Payment or PayPalConfiguration was submitted. Please see the docs.");
+            }
+        } else if (resultCode == PAYPAL_PAYMENT_REQUEST_CODE) {
+            new GiveReviewRating().execute();
+        }
+    }
+
+    protected void displayResultText(String result) {
+        Log.e(TAG,result);
+        Toast.makeText(
+                getApplicationContext(),
+                result, Toast.LENGTH_LONG)
+                .show();
+    }
+
+    //TODO: on pay using api
+    private void OnPay() {
+        HashMap<String,String>param=new HashMap<>();
+        param.put("user_id" , user_id);
+        param.put("card_id" , mySession.getCardID());
+        param.put("amount" , "" + total);
+        ApiCallBuilder.build(this).setUrl(BaseUrl.get().pay_with_paypal())
+                .setParam(param).isShowProgressBar(true)
+                .execute(new ApiCallBuilder.onResponse() {
+                    @Override
+                    public void Success(String response) {
+                        try {
+                            JSONObject object=new JSONObject(response);
+                            if (object.getString("state").equals("approved")) {
+                                PaymentToken=object.getString("id");
+                                new GiveReviewRating().execute();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void Failed(String error) {
+
+                    }
+                });
+    }
 }

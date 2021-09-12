@@ -1,14 +1,11 @@
 package main.com.dash.service;
 
-/**
- * Created by ritesh on 20/3/17.
- */
-
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -31,8 +28,8 @@ import main.com.dash.utils.NotificationUtils;
 
 import static main.com.dash.utils.NotificationUtils.isAppIsInBackground;
 
-
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
     private static final String TAG = MyFirebaseMessagingService.class.getSimpleName();
     private NotificationUtils notificationUtils;
     public static String notification_data = "";
@@ -42,12 +39,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.e(TAG, "From: " + remoteMessage.getFrom());
         mySession = new MySession(this);
-       /* PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+/*      PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
         wakeLock.acquire();
 */
+
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        boolean result = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH && powerManager.isInteractive() || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT_WATCH && powerManager.isScreenOn();
+        boolean result = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH &&
+                powerManager.isInteractive() || Build.VERSION.SDK_INT <
+                Build.VERSION_CODES.KITKAT_WATCH && powerManager.isScreenOn();
 
         if (!result) {
             PowerManager.WakeLock wl = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "MH24_SCREENLOCK");
@@ -56,7 +56,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             wl_cpu.acquire(10000);
         } else {
             PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-            PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+            @SuppressLint("InvalidWakeLockTag") PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
             wakeLock.acquire();
         }
 
@@ -111,7 +111,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             format = simpleDateFormat.format(new Date());
             Log.e(TAG, "push json: " + json.toString());
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -133,10 +132,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     Intent resultIntent = new Intent(getApplicationContext(), NotificationAct.class);
                     resultIntent.putExtra("message", data.toString());
                     showNotificationMessage(getApplicationContext(), getResources().getString(R.string.app_name), "" + msg, format, resultIntent, null);
-
                 }
 
-                if(!ChatingAct.isInFront){
+                if(!ChatingAct.isInFront) {
                     if (keyMessage.equalsIgnoreCase("You have a new message")) {
                         if (data.getString("type").equalsIgnoreCase("Support")){
                            String msg=getResources().getString(R.string.supportmessage);
@@ -150,7 +148,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                             showNotificationMessage(getApplicationContext(), getResources().getString(R.string.app_name), "" + msg, format, resultIntent, null);
 
-                        }else {
+                        } else {
                             String msg=getResources().getString(R.string.newmessagecome);
                             String name = data.getString("first_name") + " " + data.getString("last_name");
                             Intent resultIntent = new Intent(getApplicationContext(), ChatingAct.class);
@@ -281,8 +279,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-
-
     /**
      * Showing notification with text only
      */
@@ -290,7 +286,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationUtils = new NotificationUtils(context);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         notificationUtils.showNotificationMessage(title, message, timeStamp, intent, route_img);
-
     }
 
     /**

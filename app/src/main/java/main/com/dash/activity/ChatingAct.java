@@ -14,9 +14,9 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +30,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.StringRequestListener;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -51,11 +54,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -73,23 +78,27 @@ import main.com.dash.constant.MySession;
 import main.com.dash.utils.NotificationUtils;
 
 public class ChatingAct extends AppCompatActivity {
+
     private RelativeLayout exit_app_but;
     private ListView chatlist;
-    private TextView send_tv, titletext;
+    private TextView send_tv,titletext;
     private ArrayList<ConverSession> converSessionArrayList;
     MySession mySession;
-    String messagetext = "", ImagePath = "";
+    String messagetext = "",ImagePath = "";
     EditText message_et;
     ScheduledExecutorService scheduleTaskExecutor;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     ConversessionAdapter conversessionAdapter;
-    public String image_url = "", block_status = "", firstname_str = "", lastname_str = "", date_time = "", user_log_data = "", time_zone = "", request_id = "", user_id = "", receiver_id = "", receiver_img = "", receiver_name = "";
+    public String image_url = "", block_status = "",
+            firstname_str = "", lastname_str = "", date_time = "",
+            user_log_data = "", time_zone = "", request_id = "",
+            user_id = "", receiver_id = "", receiver_img = "", receiver_name = "";
     int beforelength = 0;
     ImageView camera_img;
     private boolean prosts = false;
     ProgressBar prgressbar;
     public static boolean isInFront = false;
-    private RelativeLayout bottumlay, optionmenu;
+    private RelativeLayout bottumlay,optionmenu;
     private CircleImageView chatuser_img;
     private Toolbar toolbar;
     ACProgressCustom ac_dialog;
@@ -102,29 +111,31 @@ public class ChatingAct extends AppCompatActivity {
         myLanguageSession = new MyLanguageSession(this);
         language = myLanguageSession.getLanguage();
         myLanguageSession.setLangRecreate(myLanguageSession.getLanguage());
-
-
         setContentView(R.layout.activity_chating);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             if (myLanguageSession.getLanguage().equalsIgnoreCase("ar")) {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
             } else {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
             }
-
         }
+
         ac_dialog = new ACProgressCustom.Builder(this)
                 .direction(ACProgressConstant.DIRECT_CLOCKWISE)
                 .themeColor(Color.WHITE)
                 .text(getResources().getString(R.string.pleasewait))
-                .textSize(20).textMarginTop(5)
-                .fadeColor(Color.DKGRAY).build();
+                .textSize(20)
+                .textMarginTop(5)
+                .fadeColor(Color.DKGRAY)
+                .build();
 
         mySession = new MySession(this);
         Calendar c = Calendar.getInstance();
         TimeZone tz = c.getTimeZone();
         time_zone = tz.getID();
         user_log_data = mySession.getKeyAlldata();
+
         if (user_log_data == null) {
         } else {
             try {
@@ -136,13 +147,14 @@ public class ChatingAct extends AppCompatActivity {
                     image_url = jsonObject1.getString("image");
                     firstname_str = jsonObject1.getString("first_name");
                     lastname_str = jsonObject1.getString("last_name");
-
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
+
         Bundle bundle = getIntent().getExtras();
+
         if (bundle != null) {
             receiver_id = bundle.getString("receiver_id");
             receiver_name = bundle.getString("receiver_name");
@@ -150,16 +162,19 @@ public class ChatingAct extends AppCompatActivity {
             request_id = bundle.getString("request_id");
             block_status = bundle.getString("block_status");
             Log.e("block_status chat>>"," >"+block_status);
-
         }
+
         idinit();
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar == null) {
             throw new Error("Can't find tool bar, did you forget to add it in Activity layout file?");
         }
 
         setSupportActionBar(toolbar);
+
         clickevent();
+
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -172,7 +187,6 @@ public class ChatingAct extends AppCompatActivity {
                         String keyMessage = data.getString("key").trim();
                         if (keyMessage.equalsIgnoreCase("You have a new message")) {
                             Log.e("Push Chat Come: ", "True");
-
                             new MyConverSession().execute();
                         }
                     } catch (JSONException e) {
@@ -246,7 +260,8 @@ public class ChatingAct extends AppCompatActivity {
                     date_time = format.format(today);
                     System.out.println("CURRENT " + date_time);
                     prosts = false;
-                    new SendMessage().execute();
+                   // sendMessageApi();
+                     new SendMessage().execute();
                 }
 
             }
@@ -354,6 +369,50 @@ public class ChatingAct extends AppCompatActivity {
 
     }
 
+    private void sendMessageApi() {
+
+        HashMap<String,String> param = new HashMap<>();
+        HashMap<String,File> fileParam = new HashMap<>();
+
+        if (ImagePath.equalsIgnoreCase("")) {
+            fileParam.put("chat_image", new File(""));
+        } else {
+            File ImageFile = new File(ImagePath);
+            fileParam.put("chat_image", ImageFile);
+        }
+
+        messagetext = "";
+        message_et.setText("");
+        ImagePath = "";
+        prgressbar.setVisibility(View.GONE);
+
+        param.put("sender_id", user_id);
+        param.put("receiver_id", receiver_id);
+        param.put("chat_message", messagetext);
+        param.put("request_id", request_id);
+        param.put("time_zone", time_zone);
+        param.put("date_time", date_time);
+        param.put("type", "Normal");
+
+        Log.e("gfgfgfgfgfgf","param = " + param.toString());
+
+        AndroidNetworking.post(BaseUrl.baseurl + "insert_chat")
+                .addBodyParameter(param)
+                .build()
+                .getAsString(new StringRequestListener() {
+                    @Override
+                    public void onResponse(String response) {
+                        new MyConverSession().execute();
+                        Log.e("gfgfgfgfgfgf","Response abccc = " + response);
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+                        Log.e("gfgfgfgfgfgf","anError abccc = " + anError.getErrorDetail());
+                    }
+                });
+    }
+
     public class SendMessage extends AsyncTask<String, String, String> {
         protected void onPreExecute() {
             try {
@@ -365,11 +424,20 @@ public class ChatingAct extends AppCompatActivity {
                 prgressbar.setVisibility(View.VISIBLE);
             }
         }
+
         @Override
         protected String doInBackground(String... strings) {
             String charset = "UTF-8";
             String requestURL = BaseUrl.baseurl + "insert_chat";
             Log.e("requestURL >>", requestURL);
+
+            Log.e("requestURL","sender_id = " + user_id);
+            Log.e("requestURL","receiver_id = " + receiver_id);
+            Log.e("requestURL","chat_message = " + messagetext);
+            Log.e("requestURL","request_id = " + request_id);
+            Log.e("requestURL","time_zone = " + time_zone);
+            Log.e("requestURL","type = " + "Normal");
+            Log.e("requestURL","date_time = " + date_time);
 
             try {
                 MultipartUtility multipart = new MultipartUtility(requestURL, charset);
@@ -423,15 +491,13 @@ public class ChatingAct extends AppCompatActivity {
                 ImagePath = "";
                 prgressbar.setVisibility(View.GONE);
                 new MyConverSession().execute();
-            }
-            else if (lenghtOfFile.equalsIgnoreCase("")){
+            } else if (lenghtOfFile.equalsIgnoreCase("")){
                 messagetext = "";
                 message_et.setText("");
                 ImagePath = "";
                 prgressbar.setVisibility(View.GONE);
                 new MyConverSession().execute();
-            }
-            else {
+            } else {
                 try {
                     JSONObject jsonObject = new JSONObject(lenghtOfFile);
                     if (jsonObject.getString("status").equalsIgnoreCase("1")){
@@ -470,11 +536,16 @@ public class ChatingAct extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
         @Override
         protected String doInBackground(String... strings) {
             try {
+
                 String postReceiverUrl = BaseUrl.baseurl + "get_chat_detail?";
-                Log.e("GET CHAT DETAIL",">>"+postReceiverUrl+"sender_id="+receiver_id+"&receiver_id="+user_id+"&request_id="+request_id);
+
+                Log.e("GET CHAT DETAIL",">>"+postReceiverUrl+"sender_id="
+                        +receiver_id+"&receiver_id="+user_id+"&request_id="+request_id);
+
                 URL url = new URL(postReceiverUrl);
                 Map<String, Object> params = new LinkedHashMap<>();
                 Log.e("request_id >>", "  ll " + request_id);
@@ -482,6 +553,7 @@ public class ChatingAct extends AppCompatActivity {
                 params.put("receiver_id", user_id);
                 params.put("request_id", request_id);
                 params.put("type", "Normal");
+
                 StringBuilder postData = new StringBuilder();
                 for (Map.Entry<String, Object> param : params.entrySet()) {
                     if (postData.length() != 0) postData.append('&');
@@ -559,7 +631,6 @@ public class ChatingAct extends AppCompatActivity {
                             conversessionAdapter.notifyDataSetChanged();
                             beforelength = jsonlenth;
                         }
-
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -568,7 +639,6 @@ public class ChatingAct extends AppCompatActivity {
             }
         }
 
-
     }
 
     @Override
@@ -576,7 +646,6 @@ public class ChatingAct extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK) {
-
 
             switch (requestCode) {
                 case 1:
@@ -594,11 +663,10 @@ public class ChatingAct extends AppCompatActivity {
                     decodeFile(ImagePath);
                     break;
                 case 2:
-
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
                     ImagePath = saveToInternalStorage(photo);
                     Log.e("PATHCamera", "" + ImagePath);
-                    //  avt_imag.setImageBitmap(photo);
+                    // avt_imag.setImageBitmap(photo);
                     break;
 
 
@@ -674,9 +742,8 @@ public class ChatingAct extends AppCompatActivity {
         date_time = format.format(today);
         System.out.println("CURRENT " + date_time);
         prosts = true;
-        new SendMessage().execute();
-
-
+        // sendMessageApi();
+         new SendMessage().execute();
     }
 
     private class UnblockUser extends AsyncTask<String, String, String> {

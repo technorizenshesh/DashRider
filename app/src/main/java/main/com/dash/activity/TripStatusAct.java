@@ -15,10 +15,12 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.StrictMode;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -79,6 +81,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.Timer;
@@ -89,6 +92,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import cc.cloudist.acplibrary.ACProgressConstant;
+import main.com.dash.Fragments.FragmentChooseCard;
 import main.com.dash.MainActivity;
 import main.com.dash.R;
 import main.com.dash.app.Config;
@@ -109,6 +113,7 @@ import main.com.dash.utils.NotificationUtils;
 import www.develpoeramit.mapicall.ApiCallBuilder;
 
 public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallback {
+
     private GoogleMap gMap;
     GPSTracker gpsTracker;
     private double longitude = 0.0, latitude = 0.0;
@@ -140,8 +145,8 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
     Marker marker;
     private MarkerOptions options = new MarkerOptions();
     private ArrayList<DriverDetailBean> driverDetailBeanArrayList = new ArrayList<>();
-    public ArrayList<MyCarBean> myCarBeanArrayList =new ArrayList<>();
-    public ArrayList<MyCarBean>  myCarBeanArrayList_check;
+    public ArrayList<MyCarBean> myCarBeanArrayList = new ArrayList<>();
+    public ArrayList<MyCarBean> myCarBeanArrayList_check;
     private long timeCountInMilliSeconds;
     private TextView textViewTime, time_tv;
     TextView cancel_tv, confirm_tv;
@@ -166,15 +171,17 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
         myLanguageSession = new MyLanguageSession(this);
         language = myLanguageSession.getLanguage();
         myLanguageSession.setLangRecreate(myLanguageSession.getLanguage());
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         setContentView(R.layout.activity_trip_status);
         idinits();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             if (myLanguageSession.getLanguage().equalsIgnoreCase("ar")) {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
             } else {
                 getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
             }
-
         }
 
         ac_dialog = new ACProgressCustom.Builder(this)
@@ -207,15 +214,14 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
         dialog = new ProgressDialog(this);
         dialog.setCancelable(false);
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-
         clickevetn();
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
                     FirebaseMessaging.getInstance().subscribeToTopic(Config.TOPIC_GLOBAL);
-
-                } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
+                }
+                else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
                     String message = intent.getStringExtra("message");
 
                     JSONObject data = null;
@@ -431,7 +437,6 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-
     private void clickevetn() {
         confirm_tv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -506,13 +511,10 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
                                 .getLongitude());
                         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLang, 17);
                         gMap.animateCamera(cameraUpdate);
-
                     }
-
                 }
             }
         });
-
 
         exit_app_but.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -520,12 +522,12 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
                 finish();
             }
         });
+
         cashlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 cashimg.setImageResource(R.drawable.ic_cash_tool);
                 cashtv.setTextColor(getResources().getColor(R.color.buttoncol));
-
                 creditimg.setImageResource(R.drawable.ic_credit_card);
                 credittv.setTextColor(getResources().getColor(R.color.black));
                 walletimg.setImageResource(R.drawable.ic_wallet_black);
@@ -533,41 +535,31 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
                 payment_type_str = "Cash";
             }
         });
+
         creditlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                // Toast.makeText(TripStatusAct.this,"In working..",Toast.LENGTH_LONG).show();
-
-                if (BaseActivity.card_base_id == null || BaseActivity.card_base_id.equalsIgnoreCase("")) {
-                    cardStatus();
-                } else if (!BaseActivity.card_base_id.equalsIgnoreCase("")) {
-                    cashimg.setImageResource(R.drawable.ic_cash);
-                    cashtv.setTextColor(getResources().getColor(R.color.black));
-
-                    creditimg.setImageResource(R.drawable.ic_credit_card_toolcol);
-                    credittv.setTextColor(getResources().getColor(R.color.buttoncol));
-                    walletimg.setImageResource(R.drawable.ic_wallet_black);
-                    wallettv.setTextColor(getResources().getColor(R.color.black));
-                    payment_type_str = "Card";
-                } else {
-                    cardStatus();
-                }
-
-
+                cashimg.setImageResource(R.drawable.ic_cash);
+                cashtv.setTextColor(getResources().getColor(R.color.black));
+                creditimg.setImageResource(R.drawable.ic_credit_card_toolcol);
+                credittv.setTextColor(getResources().getColor(R.color.buttoncol));
+                walletimg.setImageResource(R.drawable.ic_wallet_black);
+                wallettv.setTextColor(getResources().getColor(R.color.black));
+                payment_type_str = "Card";
+//                new FragmentChooseCard().Callback(id->{
+//                    mySession.setCardID(id);
+//                }).show(getSupportFragmentManager(),"");
             }
         });
+
         walletlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
                 if (MainActivity.amount != null && !MainActivity.amount.equalsIgnoreCase("")) {
                     double amount = Double.parseDouble(MainActivity.amount);
                     if (amount > Estimate_Amount) {
                         cashimg.setImageResource(R.drawable.ic_cash);
                         cashtv.setTextColor(getResources().getColor(R.color.black));
-
                         creditimg.setImageResource(R.drawable.ic_credit_card);
                         credittv.setTextColor(getResources().getColor(R.color.black));
                         walletimg.setImageResource(R.drawable.ic_wallet_toolcol);
@@ -579,8 +571,6 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
                 } else {
                     Toast.makeText(TripStatusAct.this, getResources().getString(R.string.notenough), Toast.LENGTH_LONG).show();
                 }
-
-
             }
         });
     }
@@ -605,7 +595,6 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
                 canceldialog.dismiss();
                 Intent i = new Intent(TripStatusAct.this, SaveCardDetail.class);
                 startActivity(i);
-
             }
         });
         no_tv.setOnClickListener(new View.OnClickListener() {
@@ -936,8 +925,8 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-
     public class SendRequestToDriver extends AsyncTask<String, String, String> {
+
         String Jsondata;
         private boolean checkdata = false;
 
@@ -957,7 +946,7 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
         protected String doInBackground(String... strings) {
             String charset = "UTF-8";
             Date date = new Date();
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
             String format = simpleDateFormat.format(new Date());
             String postReceiverUrl = "";
             if (MainActivity.booktype.equalsIgnoreCase("Letter")) {
@@ -965,8 +954,7 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
             } else {
                 postReceiverUrl = BaseUrl.baseurl + "booking_request?";
             }
-            Log.e("BOOKING URL >>", ">> " + postReceiverUrl + "car_type_id=" + selected_car_id + "&user_id=" + user_id + "&picuplocation=" + MainActivity.pickuploc_str + "&dropofflocation=" + MainActivity.dropoffloc_str + "&picuplat=" + MainActivity.pickup_lat_str + "&pickuplon=" + MainActivity.pickup_lon_str + "&droplat=" + MainActivity.drop_lat_str + "&droplon=" + MainActivity.drop_lon_str + "&shareride_type=no&booktype=" + MainActivity.booktype + "&passenger=1&current_time=" + date + "&timezone=" + time_zone + "&status=" + MainActivity.booktype);
-
+            Log.e("BOOKING URL >>", ">> " + postReceiverUrl + "car_type_id=" + selected_car_id + "&user_id=" + user_id + "&picuplocation=" + MainActivity.pickuploc_str + "&dropofflocation=" + MainActivity.dropoffloc_str + "&picuplat=" + MainActivity.pickup_lat_str + "&pickuplon=" + MainActivity.pickup_lon_str + "&droplat=" + MainActivity.drop_lat_str + "&droplon=" + MainActivity.drop_lon_str + "&shareride_type=no&booktype=" + MainActivity.booktype + "&passenger=1&current_time=" + date + "&timezone=" + time_zone + "&status=" + MainActivity.booktype+"&apply_code="+coupon_str+"&vehical_type=Reqular"+"&picklatertime=&picklaterdate=&route_img=");
 
             try {
                 MultipartUtility multipart = new MultipartUtility(postReceiverUrl, charset);
@@ -1800,7 +1788,7 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
                         for (DriverDetailBean point : driverDetailBeanArrayList) {
                             LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
                             options.position(latLng);
-                            options.title("" + point.getFirst_name() + " " + point.getEstimatetime() + " min away");
+                            options.title(/*"" + point.getFirst_name() + " " +*/ point.getEstimatetime() + " min away");
                             marker = gMap.addMarker(options);
                             marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.carfromabove));
                         }
@@ -1871,6 +1859,9 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
         @Override
         protected void onPostExecute(String response) {
             super.onPostExecute(response);
+            if (response==null){
+                return;
+            }
             Log.e("GetNearestDriver","======>"+response);
             try {
                 JSONObject jsonobj = new JSONObject(response);
@@ -1900,20 +1891,18 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
                     for (DriverDetailBean point : driverDetailBeanArrayList) {
                         LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
                         options.position(latLng);
-                        options.title("" + point.getFirst_name() + " " + point.getEstimatetime() + " min away");
+                        options.title(/*"" + point.getFirst_name() + " " +*/ point.getEstimatetime() + " min away");
                         marker = gMap.addMarker(options);
                         marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.carfromabove));
-
                     }
                 }
-
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
         }
     }
-
 
     private void showWaitPopup() {
         waitingdialogSts = new Dialog(TripStatusAct.this);
@@ -1968,16 +1957,17 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
             }
 
             public void onFinish() {
+
                 if (NotificationUtils.r != null && NotificationUtils.r.isPlaying()) {
                     NotificationUtils.r.stop();
                 }
+
                 if (isVisible) {
                     if (waitingdialogSts != null && waitingdialogSts.isShowing()) {
                         waitingdialogSts.dismiss();
                     }
                     if (content1 != null) {
                         content1.stopRippleAnimation();
-
                     }
                     noDriverFound();
                 }
@@ -1989,7 +1979,6 @@ public class TripStatusAct extends AppCompatActivity implements OnMapReadyCallba
             public void onClick(View v) {
                 waitingdialogSts.dismiss();
                 areusureCancelRide();
-
             }
         });
 

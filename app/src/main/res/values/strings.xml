@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">DASH</string>
     <string name="app_name_cap" translatable="false">DASH</string>
+    <string name="googlekeyNew" translatable="false">AIzaSyDHzbqstWXpYy7ce4IN-J-2YYKBxKrE2dk</string>
     <string name="googlekey" translatable="false">AIzaSyAN88JhZJmgIFhFj0czf9zJKua_P4EPkGs</string>
-    <string name="googlekey_other" translatable="false">AIzaSyCct-fQlzaGlvSPw9eK0OrjhR-W83AfeVE</string>
+    <string name="googlekey_other" translatable="false">AIzaSyB1yWUxDg9DoFbcPFMgORaTbYPtQ2jIjwQ</string>
     <string name="FACEBOOK_APP_ID" translatable="false">564115860922844</string>
     <string name="facebook_app_id" translatable="false">564115860922844</string>
     <string name="fb_login_protocol_scheme" translatable="false">fb564115860922844</string>
@@ -323,5 +324,6 @@
     <string name="required">Required</string>
     <string name="emergency_call">Emergency Call</string>
     <string name="parish">Parish</string>
+    <string name="online">Online</string>
 
 </resources>
